@@ -27,7 +27,7 @@ jobs:
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/my-image
           tags: |
-            type=ref,event=branch
+            type=raw,value=${{ github.run_number }}
             type=ref,event=tag
             type=sha
 
