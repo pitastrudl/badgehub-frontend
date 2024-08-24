@@ -25,7 +25,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/my-image
+          images: ${{ github.event.repository.name }}/my-image
           tags: |
             type=raw,value=${{ github.run_number }}
             type=ref,event=tag
