@@ -41,8 +41,11 @@ jobs:
   deploy:
     runs-on: ubuntu-20.04
     steps:
-    - name: Debug single line Secret in Variable
-      run: echo ${{ secrets.HOST}} | sed 's/./& /g'
+    - shell: bash
+      env:
+        HOSTT: ${{ secrets.HOST }}
+      run: |
+        example-command "$HOSTT"
     - name: deploy to server
       uses: garygrossgarten/github-action-ssh@0.8.0
       with:
