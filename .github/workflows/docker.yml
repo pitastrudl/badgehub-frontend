@@ -38,3 +38,14 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: deploy to server
+      uses: garygrossgarten/github-action-ssh@0.8.0
+      with:
+        command: ls -a
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        passphrase: ${{ secrets.PASSPHRASE }}
+        privateKey: ${{ secrets.PRIVATE_KEY}}
