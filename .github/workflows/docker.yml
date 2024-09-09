@@ -45,7 +45,7 @@ jobs:
       env:
         HOSTT: ${{ secrets.HOST }}
       run: |
-        example-command "$HOSTT"
+        echo "$HOSTT"
     - name: deploy to server
       uses: garygrossgarten/github-action-ssh@0.8.0
       with:
