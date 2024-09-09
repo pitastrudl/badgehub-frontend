@@ -48,6 +48,7 @@ jobs:
         echo "$HOSTT"
     - name: deploy to server
       uses: garygrossgarten/github-action-ssh@0.8.0
+      secrets: inherit
       with:
         command: ls -a
         host: ${{ secrets.HOST }}
