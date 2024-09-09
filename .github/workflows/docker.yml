@@ -40,6 +40,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
   deploy:
     runs-on: ubuntu-20.04
+    secrets: inherit
     steps:
     - shell: bash
       env:
@@ -48,7 +49,6 @@ jobs:
         echo "$HOSTT"
     - name: deploy to server
       uses: garygrossgarten/github-action-ssh@0.8.0
-      secrets: inherit
       with:
         command: ls -a
         host: ${{ secrets.HOST }}
