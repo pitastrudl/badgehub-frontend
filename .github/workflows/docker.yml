@@ -40,23 +40,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
   deploy:
     runs-on: ubuntu-20.04
+    environment: test-frontend-zminec
     steps:
-    - name: Debug secrets
-      run: |
-        echo "HOST: ${{ secrets.HOST }}"
-        echo "PORT: ${{ secrets.PORT }}"
-        echo "USERNAME: ${{ secrets.USERNAME }}"
-        echo "PASSPHRASE: ${{ secrets.PASSPHRASE }}"
-        echo "PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}"
-    - shell: bash
-      env:
-        HOSTT: ${{ secrets.HOST }}
-      run: |
-        echo "$HOSTT"
     - name: deploy to server
       uses: garygrossgarten/github-action-ssh@0.8.0
       with:
-        command: ls -a
+        command: date
         host: ${{ secrets.HOST }}
         port: ${{ secrets.PORT }}
         username: ${{ secrets.USERNAME }}
