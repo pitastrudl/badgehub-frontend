@@ -43,6 +43,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
   deploy:
     runs-on: ubuntu-20.04
+    needs: build-and-push
     environment: test-frontend-zminec
     steps:
     - name: deploy to server
