@@ -52,7 +52,12 @@ jobs:
     - name: deploy to server
       uses: garygrossgarten/github-action-ssh@0.8.0
       with:
-        command: env |grep FRONTEND
+        command: |
+          export FRONTEND_IMAGE_TAG=${{ env.FRONTEND_IMAGE_TAG }}
+          export FRONTEND_TEST=${{ env.FRONTEND_TEST }}
+          echo "FRONTEND_IMAGE_TAG is: $FRONTEND_IMAGE_TAG"
+          echo "FRONTEND_TEST is: $FRONTEND_TEST"
+          env | grep FRONTEND
         host: ${{ secrets.HOST }}
         port: ${{ secrets.PORT }}
         username: ${{ secrets.USERNAME }}
