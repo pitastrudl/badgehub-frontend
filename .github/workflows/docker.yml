@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      output1: ${{ steps.meta.outputs.tags }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -32,6 +34,7 @@ jobs:
             type=sha
 
       - name: Build and push Docker image
+        id: buildandpush
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -44,8 +47,10 @@ jobs:
     steps:
     - name: deploy to server
       uses: garygrossgarten/github-action-ssh@0.8.0
+      env:
+        FRONTEND_IMAGE_TAG:  ${{needs.build-and-push.outputs.output1}}
       with:
-        command: date
+        command: env |grep FRONTEND
         host: ${{ secrets.HOST }}
         port: ${{ secrets.PORT }}
         username: ${{ secrets.USERNAME }}
