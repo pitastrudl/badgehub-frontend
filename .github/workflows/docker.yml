@@ -5,6 +5,7 @@ on:
       - cicd
     tags: 
       - v*
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -25,17 +26,16 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}  # maybe use GITHUB_TOKEN ?
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/${{ github.repository_owner }}/my-image  # change to  github.event.repository.name  
+          images: ghcr.io/${{ github.repository_owner }}/my-image
           tags: |
-            type=raw,value=${{ github.run_number }}
-            type=ref,event=tag
-            type=sha
+            type=ref,event=tag   # Git tag
+            type=sha              # Fallback to SHA
 
       - name: Build and push Docker image
         id: buildandpush
@@ -46,13 +46,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
-      # Determine whether to use the tag or the sha
       - name: Determine Docker tag or SHA
         id: determine-tag
         run: |
-          DOCKER_TAG=$(echo "${{ steps.meta.outputs.tags }}" | cut -d',' -f1)
-          if [[ -z "$DOCKER_TAG" ]]; then
-            FINAL_TAG="${{ steps.meta.outputs.sha }}"
+          DOCKER_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          if [[ "$DOCKER_TAG" == *sha-* ]]; then
+            FINAL_TAG="$DOCKER_TAG"
           else
             FINAL_TAG="$DOCKER_TAG"
           fi
