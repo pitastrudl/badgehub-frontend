@@ -50,6 +50,7 @@ jobs:
       uses: garygrossgarten/github-action-ssh@0.8.0
       env:
         FRONTEND_IMAGE_TAG:  ${{needs.build-and-push.outputs.output1}}
+        FRONTEND_TEST: "testing FRONTEND"
       with:
         command: env |grep FRONTEND
         host: ${{ secrets.HOST }}
