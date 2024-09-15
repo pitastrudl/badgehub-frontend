@@ -52,7 +52,7 @@ jobs:
         id: capture-tags
         run: |
           echo "Capturing all tags..."
-          ALL_TAGS=$(echo "${{ steps.meta.outputs.tags }}" )
+          ALL_TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr '\n' '|' )
           echo "all_tags=$ALL_TAGS" >> $GITHUB_OUTPUT
 
       - name: Determine Docker tag or SHA
@@ -81,7 +81,7 @@ jobs:
         id: format-tags
         run: |
           ALL_TAGS="${{ needs.build-and-push.outputs.all_tags }}"
-          FULL_TAGS=$(echo "$ALL_TAGS" | tr ',' '\n' | while read tag; do echo "\`$tag\`"; done | tr '\n' '\n')
+          FULL_TAGS=$(echo "$ALL_TAGS" | tr '|' '\n' | while read tag; do echo "\`$tag\`"; done | tr '\n' '\n')
           echo "Formatted tags: $FULL_TAGS"
           echo "full_tags=$FULL_TAGS" >> $GITHUB_ENV
 
