@@ -83,7 +83,7 @@ jobs:
           ALL_TAGS="${{ needs.build-and-push.outputs.all_tags }}"
           FULL_TAGS=$(echo "$ALL_TAGS" | tr '|' '\n' | while read tag; do echo "\`$tag\`"; done | tr '\n' '\n')
           echo "Formatted tags: $FULL_TAGS"
-          echo "full_tags=$FULL_TAGS" >> $GITHUB_ENV
+          echo "full_tags=$FULL_TAGS" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
@@ -92,7 +92,7 @@ jobs:
           name: "Release ${{ needs.build-and-push.outputs.final_tag }}"  # Release name based on final tag
           body: |
             This release includes the Docker image with the following Docker tags:
-            ${{ env.full_tags }}.
+            ${{  steps.format-tags.outputs.full_tags }}.
           allowUpdates: false
           draft: false
           prerelease: false
