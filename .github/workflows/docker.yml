@@ -11,8 +11,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
-      final_tag: ${{ steps.determine-tag.outputs.final_tag }}
-      full_tags: ${{ steps.determine-tag.outputs.full_tags }}  # Add output for full tags
+      final_tag: ${{ steps.determine-tag.outputs.final_tag }}  # Keep the final tag
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -48,15 +47,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
-      - name: Determine Docker tag or SHA and format full tags
+      - name: Determine Docker tag or SHA
         id: determine-tag
         run: |
           echo "Processing tags: ${{ steps.meta.outputs.tags }}"
-          FULL_TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | while read tag; do echo "\`$tag\`"; done | tr '\n' '\n')
           
-          echo "Full tags for release: $FULL_TAGS"
-          echo "full_tags=$FULL_TAGS" >> $GITHUB_OUTPUT
-
+          # Determine final tag (existing logic)
           TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n')
           DOCKER_TAG=$(echo "$TAGS" | grep '^.*:v[0-9]' | awk -F':' '{print $NF}' | head -n 1)
           if [ -z "$DOCKER_TAG" ]; then
@@ -75,6 +71,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Format Docker Tags for Release
+        id: format-tags
+        run: |
+          TAGS=$(echo "${{ needs.build-and-push.outputs.final_tag }}" | tr ',' '\n')
+          FULL_TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | while read tag; do echo "\`$tag\`"; done | tr '\n' '\n')
+          echo "Formatted tags: $FULL_TAGS"
+          echo "full_tags=$FULL_TAGS" >> $GITHUB_ENV
+
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
@@ -82,7 +86,7 @@ jobs:
           name: "Release ${{ needs.build-and-push.outputs.final_tag }}"  # Release name based on final tag
           body: |
             This release includes the Docker image with the following Docker tags:
-            ${{ needs.build-and-push.outputs.full_tags }}.
+            ${{ env.full_tags }}.
           allowUpdates: false
           draft: false
           prerelease: false
