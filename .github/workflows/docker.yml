@@ -1,4 +1,5 @@
 name: Publish Docker image
+
 on:
   push:
     branches:
@@ -10,7 +11,8 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
-      output1: ${{ steps.determine-tag.outputs.final_tag }}
+      final_tag: ${{ steps.determine-tag.outputs.final_tag }}
+      all_tags: ${{ steps.capture-tags.outputs.all_tags }}  # Add a new output for all tags
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -49,7 +51,7 @@ jobs:
       - name: Determine Docker tag or SHA
         id: determine-tag
         run: |
-          echo "${{ steps.meta.outputs.tags }}" 
+          echo "Determining final tag from: ${{ steps.meta.outputs.tags }}"
           TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n')
           DOCKER_TAG=$(echo "$TAGS" | grep '^.*:v[0-9]' | awk -F':' '{print $NF}' | head -n 1)
           if [ -z "$DOCKER_TAG" ]; then
@@ -57,17 +59,39 @@ jobs:
           fi
           echo "Final tag to use: $DOCKER_TAG"
           echo "final_tag=$DOCKER_TAG" >> $GITHUB_OUTPUT
+          echo "all_tags=$TAGS" >> $GITHUB_OUTPUT
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.build-and-push.outputs.final_tag }}  # Final tag used as release tag
+          name: "Release ${{ needs.build-and-push.outputs.final_tag }}"  # Release name based on final tag
+          body: |
+            This release includes the Docker image with the following tags:
+            - ${{ needs.build-and-push.outputs.all_tags }}.
+            - Docker Image: `ghcr.io/${{ github.repository_owner }}/my-image:${{ needs.build-and-push.outputs.all_tags }}`
+          allowUpdates: false
+          draft: false
+          prerelease: false
 
   deploy:
     runs-on: ubuntu-20.04
     needs: build-and-push
     environment: test-frontend-zminec
     env:
-      # Use the output from the previous job
-      FRONTEND_IMAGE_TAG: ${{ needs.build-and-push.outputs.output1 }}
+      FRONTEND_IMAGE_TAG: ${{ needs.build-and-push.outputs.final_tag }}
       FRONTEND_TEST: "testing FRONTEND"
     steps:
-      - name: deploy to server
+      - name: Deploy to server
         uses: garygrossgarten/github-action-ssh@0.8.0
         with:
           command: |
