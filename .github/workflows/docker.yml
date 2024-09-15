@@ -11,7 +11,8 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
-      final_tag: ${{ steps.determine-tag.outputs.final_tag }}  # Keep the final tag
+      final_tag: ${{ steps.determine-tag.outputs.final_tag }}
+      all_tags: ${{ steps.capture-tags.outputs.all_tags }}  # Output for all tags
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -47,12 +48,17 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
 
+      - name: Capture all tags for release
+        id: capture-tags
+        run: |
+          echo "Capturing all tags..."
+          ALL_TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n')
+          echo "all_tags=$ALL_TAGS" >> $GITHUB_OUTPUT
+
       - name: Determine Docker tag or SHA
         id: determine-tag
         run: |
-          echo "Processing tags: ${{ steps.meta.outputs.tags }}"
-          
-          # Determine final tag (existing logic)
+          echo "Determining final tag from: ${{ steps.meta.outputs.tags }}"
           TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n')
           DOCKER_TAG=$(echo "$TAGS" | grep '^.*:v[0-9]' | awk -F':' '{print $NF}' | head -n 1)
           if [ -z "$DOCKER_TAG" ]; then
@@ -74,8 +80,8 @@ jobs:
       - name: Format Docker Tags for Release
         id: format-tags
         run: |
-          TAGS=$(echo "${{ needs.build-and-push.outputs.final_tag }}" | tr ',' '\n')
-          FULL_TAGS=$(echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | while read tag; do echo "\`$tag\`"; done | tr '\n' '\n')
+          ALL_TAGS="${{ needs.build-and-push.outputs.all_tags }}"
+          FULL_TAGS=$(echo "$ALL_TAGS" | while read tag; do echo "\`$tag\`"; done | tr '\n' '\n')
           echo "Formatted tags: $FULL_TAGS"
           echo "full_tags=$FULL_TAGS" >> $GITHUB_ENV
 
